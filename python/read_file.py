@@ -1,6 +1,9 @@
 #coding: utf-8
 
 import csv
+from nlp import nlp
+
+mnlp = nlp()
 
 def data(conf):
     #读入路径
@@ -19,9 +22,12 @@ def data(conf):
         if a == 0:
             a += 1
             continue
-        train.append(line[2])
+        train.append(mnlp.token(line[2]))
+        #train.append(line[2].lower())
         y.append(int(line[-1]))
         a += 1
+        if a % 100 == 0:
+            print a
     f.close()
 
     a = 0
@@ -32,9 +38,12 @@ def data(conf):
         if a == 0:
             a += 1
             continue
-        test.append(line[2])
+        test.append(mnlp.token(line[2]))
+        #test.append(line[2].lower())    
         label.append(line[1])
         a += 1
+        if a%100==0:
+            print a
     f.close()
     return train,test,y,label
 

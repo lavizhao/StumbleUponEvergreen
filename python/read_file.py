@@ -5,7 +5,7 @@ from nlp import nlp
 
 mnlp = nlp()
 
-def data(conf):
+def data(conf,tokenize=True):
     #读入路径
     train_dir = conf["raw_train"]
     test_dir = conf["raw_test"]
@@ -22,8 +22,10 @@ def data(conf):
         if a == 0:
             a += 1
             continue
-        train.append(mnlp.token(line[2]))
-        #train.append(line[2].lower())
+        if tokenize==True:
+            train.append(mnlp.token(line[2]))
+        else:
+            train.append(line[2].lower())
         y.append(int(line[-1]))
         a += 1
         if a % 100 == 0:
@@ -38,8 +40,10 @@ def data(conf):
         if a == 0:
             a += 1
             continue
-        test.append(mnlp.token(line[2]))
-        #test.append(line[2].lower())    
+        if tokenize==True:
+            test.append(mnlp.token(line[2]))
+        else:
+            test.append(line[2].lower())    
         label.append(line[1])
         a += 1
         if a%100==0:

@@ -10,10 +10,26 @@ import sys
 import numpy as np
 
 #sklearn
+#dim reduction
+from sklearn.decomposition import TruncatedSVD as SVD
+from sklearn.decomposition import PCA
+
+#feature selection
+from sklearn.linear_model import RandomizedLogisticRegression as RLR
+
+#tf-idf
 from sklearn.feature_extraction.text import TfidfVectorizer
+
+#classfier
 from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB as NB
+from sklearn.neighbors import KNeighborsClassifier as KNN
+from sklearn.ensemble import RandomForestClassifier as RF
+from sklearn.ensemble import GradientBoostingClassifier as GBDT
+
+#cv
 from sklearn import cross_validation
-from sklearn.decomposition import TruncatedSVD as PCA
+
 
 def get_tfidf(train,test,LSA=False):
     if LSA==False:
@@ -24,8 +40,6 @@ def get_tfidf(train,test,LSA=False):
         x = x_all[:length_train]
         t = x_all[length_train:]
 
-        return x,t
-
     else:
         vectorizer = TfidfVectorizer(max_features=300000,min_df=1,max_df=1.0,sublinear_tf=True,ngram_range=(1,2),smooth_idf=True,token_pattern=r'\w{1,}',analyzer='word',strip_accents='unicode')
         length_train = len(train)
@@ -35,17 +49,22 @@ def get_tfidf(train,test,LSA=False):
         t = x_all[length_train:]
 
         print "LSA"
-        pca = PCA(n_components=600,algorithm="arpack")
-        pca.fit(x)
-        x = pca.transform(x)
-        t = pca.transform(t)
+        lsa = SVD(n_components=600,algorithm="arpack")
+        lsa.fit(x)
+        x = lsa.transform(x)
+        t = lsa.transform(t)
 
-        #print "to dense"
-        #x = x.toarray()
-        #t = t.toarray()
-        
-        return x,t
+    return x,t
 
+def feature_selection(train,test,y):
+    print "特征选择"
+    clf = RLR(C=10,scaling=0.5,sample_fraction=0.6,n_resampling=200,selection_threshold=0.4,n_jobs=3)
+    clf.fit(train,y)
+    train = clf.transform(train)
+    test = clf.transform(test)
+
+    return train,test
+    
 def train_model(train,test,y,options):
     model_name = options.model    
     print "tf-idf"    
@@ -56,10 +75,27 @@ def train_model(train,test,y,options):
     print "train:",train.shape
     print "test:",test.shape
 
+    if options.fs == True:
+        train,test = feature_selection(train,test,y)
+        
+    print "特征选择后数据维度"
+    print "train:",train.shape
+    print "test:",test.shape
+        
+
     #选择模型
     print "你选择的模型是",model_name
     if model_name == "LR":
         clf = LogisticRegression(penalty='l2',dual=True,fit_intercept=True,C=2,tol=0.0001,class_weight=None, random_state=None, intercept_scaling=0.1)
+    elif model_name == "NB":
+        clf = NB()
+    elif model_name == "KNN":
+        clf = KNN(n_neighbors=40,weights='distance')
+    elif model_name == "RF":
+        #clf = RF(n_estimators=1500,max_features=20,max_depth=8,min_samples_split=10,min_samples_leaf=2)
+        clf = RF(n_estimators=1500,max_features="sqrt")
+    elif model_name == "GBDT":
+        clf = GBDT(n_estimators=200)
     else:
         print "你只能从LR,NB,RF几种模型里选择"
         sys.exit(1)
@@ -86,6 +122,8 @@ def main():
     parser.add_option("-l","--LSA",dest="LSA",action="store_true",\
                       help=u"选择是否LSA，注意当选用非LR模型的时候，LSA是必须默认开着的，这个在后来我会强制一下逻辑，现在没写",\
                       default=False)
+    parser.add_option("-s","--fselect",dest="fs",action="store_true",
+                      help=u"选择是否进行特征选择，默认是否，加上-s后会进行选择",default=False)
     (options, args) = parser.parse_args()
     print options
     

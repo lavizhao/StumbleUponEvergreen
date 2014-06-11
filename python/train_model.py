@@ -30,6 +30,7 @@ from sklearn.naive_bayes import GaussianNB as NB
 from sklearn.neighbors import KNeighborsClassifier as KNN
 from sklearn.ensemble import RandomForestClassifier as RF
 from sklearn.ensemble import GradientBoostingClassifier as GBDT
+from sklearn.linear_model import LinearRegression as LReg
 
 #cv
 from sklearn import cross_validation
@@ -166,6 +167,8 @@ def get_clf(model_name):
         clf = GBDT(n_estimators=800,max_features="sqrt",max_depth=8,min_samples_split=10,min_samples_leaf=2)
     elif model_name == "LDA":
         clf = LogisticRegression(penalty='l2',dual=True,fit_intercept=True,C=1,tol=1e-8,class_weight=None, random_state=None, intercept_scaling=0.1)
+    elif model_name == "LReg":
+        clf = LReg()
     else:
         print "你只能从LR,NB,RF几种模型里选择"
         sys.exit(1)    

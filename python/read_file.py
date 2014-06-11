@@ -112,10 +112,29 @@ def save_pred(conf,pred_train,pred_test):
 
     f = open(conf["pred_test"],"w")
     writer = csv.writer(f)
-    for line in pred_train:
+    for line in pred_test:
         writer.writerow(line)
         
     f.close()
+
+def load_pred(conf):
+    f = open(conf["pred_train"])
+    reader = csv.reader(f)
+    train = []
+    for line in reader:
+        line = [float(i) for i in line]
+        train.append(line)
+
+    f = open(conf["pred_test"])
+    reader = csv.reader(f)
+    test = []
+    for line in reader:
+        line = [float(i) for i in line]
+        test.append(line)
+
+    return train,test
+        
+    
 def merge(conf):
     train,test,y,label,fuck,suck = data(conf,tokenize=False)
     print "train",len(train)
